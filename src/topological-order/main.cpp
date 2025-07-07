@@ -2,27 +2,24 @@
 
 using namespace std;
 
-int main(int argc, char** argv) {
+int main() {
   ifstream input("input.txt");
   ifstream input2("input2.txt");
   ofstream output("output.txt");
 
-  Graph graph(input2);
+  Graph graph(input);
 
   graph.print();
-  graph.print(output);
+  graph.print("Graph", output);
   graph.dfs();
   graph.print_topological_order();
+  // graph.print_topological_order(output);
 
-  graph.find_hamiltonian_cycle(0);
-  cout << endl;
-  output << endl;
+  graph.hamiltonian_cycle(0, output);
+  graph.hamiltonian_cycle(0);
 
   Node* src = graph.get_node(0);
   Node* dest = graph.get_node(3);
-
-  if (!src) cerr << "Node " << src->get_data() << "not found" << endl;
-  if (!dest) cerr << "Node " << dest->get_data() << "not found" << endl;
 
   if (src && dest) {
     graph.bellman_ford(src, dest);
@@ -31,14 +28,13 @@ int main(int argc, char** argv) {
 
   src = graph.get_node(0);
 
-  if (!src)
-    cerr << "Node " << src->get_data() << "not found" << endl;
-  else {
+  if (src) {
     graph.dijkstra(src);
     graph.dijkstra(src, output);
   }
 
   input.close();
+  input2.close();
   output.close();
 
   return 0;

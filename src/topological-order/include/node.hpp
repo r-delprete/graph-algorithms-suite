@@ -2,50 +2,49 @@
 #define NODE_HPP
 
 #include <climits>
-#include <string>
+#include <iostream>
 #include <vector>
 
 enum Color { white, gray, black };
 
 class Node {
-private:
-  int data;
-  int distance;
-  int start_discovery;
-  int end_visit;
+  int data, start_discovery, end_visit, distance;
+  Color color;
   Node* predecessor;
   std::vector<Node*> adj_list;
-  Color color;
 
 public:
-  Node(int data) : data(data), distance(INT_MAX), start_discovery(INT_MAX), end_visit(INT_MAX), predecessor(nullptr) {}
+  Node(int data)
+      : data(data),
+        start_discovery(INT_MAX),
+        end_visit(INT_MAX),
+        distance(INT_MAX),
+        color(Color::white),
+        predecessor(nullptr) {}
 
-  int get_data() { return data; }
-  int get_distance() { return distance; }
+  int get_data() const { return data; }
+  Color get_color() const { return color; }
+  Node* get_predecessor() const { return predecessor; }
+  std::vector<Node*>& get_adj_list() { return adj_list; }
+  const std::vector<Node*>& get_adj_list() const { return adj_list; }
   int get_start_discovery() { return start_discovery; }
-  int get_end_visit() { return end_visit; }
-  Node* get_predecessor() { return predecessor; }
-  std::vector<Node*> get_adj_list() { return adj_list; }
-  Color get_color() { return color; }
+  int get_end_visit() const { return end_visit; }
+  int get_distance() const { return distance; }
 
-  void set_data(int new_data) { data = new_data; }
-  void set_distance(int new_distance) { distance = new_distance; }
-  void set_start_discovery(int new_start_discovery) { start_discovery = new_start_discovery; }
-  void set_end_visit(int new_end_visit) { end_visit = new_end_visit; }
-  void set_predecessor(Node* new_predecessor) { predecessor = new_predecessor; }
-  void add_adjacent(Node* node) { adj_list.push_back(node); }
-  void set_color(Color new_color) { color = new_color; }
+  void set_data(int data) { this->data = data; }
+  void set_color(Color color) { this->color = color; }
+  void set_predecessor(Node* predecessor) { this->predecessor = predecessor; }
+  void add_adjacent(Node* adj) { adj_list.push_back(adj); }
+  void set_start_discovery(int start_discovery) { this->start_discovery = start_discovery; }
+  void set_end_visit(int end_visit) { this->end_visit = end_visit; }
+  void set_distance(int distance) { this->distance = distance; }
 
-  std::string get_info() {
-    if (predecessor) {
-      return "Node: " + std::to_string(data) + " => (predecessor: " + std::to_string(predecessor->data) +
-             ") - start visit: " + std::to_string(start_discovery) + " - end visit: " + std::to_string(end_visit);
-    }
-
-    return "Node: " + std::to_string(data) +
-           " => (predecessor: NULL) - start visit: " + std::to_string(start_discovery) +
-           " - end visit: " + std::to_string(end_visit);
+  void get_info(std::ostream& out = std::cout) {
+    out << "Node (" << data << ") => start visit: " << start_discovery << " - end visit: " << end_visit
+        << " - distance: " << distance << " - predecessor: (";
+    predecessor ? out << predecessor->get_data() : out << "NULL";
+    out << ")" << std::endl;
   }
 };
 
-#endif  // NODE_HPP
+#endif

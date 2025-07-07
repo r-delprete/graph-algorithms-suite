@@ -4,9 +4,7 @@
 #include "node.hpp"
 
 class Edge {
-private:
-  Node* src;
-  Node* dest;
+  Node *src, *dest;
   int weight;
 
 public:
@@ -16,14 +14,13 @@ public:
   Node* get_destination() { return dest; }
   int get_weight() { return weight; }
 
-  void set_source(Node* new_src) { src = new_src; }
-  void set_destination(Node* new_dest) { dest = new_dest; }
-  void set_weight(int new_weight) { weight = new_weight; }
+  void set_source(Node* src) { this->src = src; }
+  void set_destination(Node* dest) { this->dest = dest; }
+  void set_weight(int weight) { this->weight = weight; }
 
-  std::string get_info() {
-    return "(" + std::to_string(src->get_data()) + ") -> (" + std::to_string(dest->get_data()) +
-           ") - weight: " + std::to_string(weight);
+  void get_info(std::ostream& out = std::cout) {
+    out << "(" << src->get_data() << ") -> (" << dest->get_data() << ") - weight: " << weight << std::endl;
   }
 };
 
-#endif  // EDGE_HPP
+#endif
