@@ -2,7 +2,7 @@
 #define NODE_HPP
 
 #include <climits>
-#include <string>
+#include <iostream>
 #include <vector>
 
 enum Color { white, black, gray };
@@ -18,25 +18,23 @@ private:
 public:
   Node(int data) : data(data), color(Color::white), predecessor(nullptr), distance(INT_MAX) {}
 
-  int get_data() { return data; }
-  Color get_color() { return color; }
-  Node* get_predecessor() { return predecessor; }
-  int get_distance() { return distance; }
-  std::vector<Node*> get_adj_list() { return adj; }
+  int get_data() const { return data; }
+  Color get_color() const { return color; }
+  Node* get_predecessor() const { return predecessor; }
+  int get_distance() const { return distance; }
+  const std::vector<Node*>& get_adj_list() const { return adj; }
+  std::vector<Node*>& get_adj_list() { return adj; }
 
-  void set_data(int new_data) { data = new_data; }
-  void set_color(Color new_color) { color = new_color; }
-  void set_predecessor(Node* new_predecessor) { predecessor = new_predecessor; }
-  void set_distance(int new_distance) { distance = new_distance; }
+  void set_data(int data) { this->data = data; }
+  void set_color(Color color) { this->color = color; }
+  void set_predecessor(Node* predecessor) { this->predecessor = predecessor; }
+  void set_distance(int distance) { this->distance = distance; }
   void add_adjacent(Node* node) { adj.push_back(node); }
 
-  std::string get_info() {
-    if (predecessor) {
-      return "Node: " + std::to_string(data) + " => (predecessor: " + std::to_string(predecessor->data) +
-             ") - distance: " + std::to_string(distance);
-    }
-
-    return "Node: " + std::to_string(data) + " => (predecessor: NULL) - distance: " + std::to_string(distance);
+  void print(std::ostream& out = std::cout) {
+    out << "Node (" << data << ") => distance: " << distance << " - predecessor (";
+    predecessor ? out << predecessor->data : out << "NULL";
+    out << ")" << std::endl;
   }
 };
 

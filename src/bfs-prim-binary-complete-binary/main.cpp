@@ -2,8 +2,8 @@
 
 using namespace std;
 
-int main(int argc, char** argv) {
-  ifstream input("input2.txt");
+int main() {
+  ifstream input("input.txt");
   ofstream output("output.txt");
 
   Graph graph(input);
@@ -12,7 +12,7 @@ int main(int argc, char** argv) {
   Node* src = graph.get_node(0);
   if (src) {
     graph.bfs(src);
-    graph.print(cout, "After BFS visit");
+    graph.print("After BFS visit");
 
     graph.prim(src);
     graph.print_mst();
