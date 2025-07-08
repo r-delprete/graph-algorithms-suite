@@ -1,5 +1,52 @@
-Node: 0 - (predecessor: NULL) - start discovery: 1 - end_visit: 10
-Node: 1 - (predecessor: 0) - start discovery: 2 - end_visit: 7
-Node: 2 - (predecessor: 0) - start discovery: 8 - end_visit: 9
-Node: 3 - (predecessor: 1) - start discovery: 3 - end_visit: 6
-Node: 4 - (predecessor: 3) - start discovery: 4 - end_visit: 5
+Graph
+Node (0) => start visit: 1 - end visit: 10 - predecessor: (NULL)
+Node (1) => start visit: 2 - end visit: 7 - predecessor: (0)
+Node (2) => start visit: 8 - end visit: 9 - predecessor: (0)
+Node (3) => start visit: 3 - end visit: 6 - predecessor: (1)
+Node (4) => start visit: 4 - end visit: 5 - predecessor: (3)
+Edges
+(src: 0 -> dest: 1) - weight: 2 - type: tree edge
+(src: 0 -> dest: 2) - weight: 1 - type: tree edge
+(src: 1 -> dest: 3) - weight: 3 - type: tree edge
+(src: 1 -> dest: 4) - weight: 5 - type: forward edge
+(src: 2 -> dest: 3) - weight: 4 - type: cross edge
+(src: 3 -> dest: 4) - weight: 6 - type: tree edge
+(src: 3 -> dest: 0) - weight: 5 - type: backward edge
+
+Total cycles => 1
+
+Graph with input2 - pre DFS
+Node (0) => start visit: 2147483647 - end visit: 2147483647 - predecessor: (NULL)
+Node (1) => start visit: 2147483647 - end visit: 2147483647 - predecessor: (NULL)
+Node (2) => start visit: 2147483647 - end visit: 2147483647 - predecessor: (NULL)
+Node (3) => start visit: 2147483647 - end visit: 2147483647 - predecessor: (NULL)
+Node (4) => start visit: 2147483647 - end visit: 2147483647 - predecessor: (NULL)
+Edges
+(src: 0 -> dest: 1) - weight: 1 - type: tree edge
+(src: 1 -> dest: 2) - weight: 1 - type: tree edge
+(src: 2 -> dest: 3) - weight: 1 - type: tree edge
+(src: 3 -> dest: 4) - weight: 1 - type: tree edge
+(src: 4 -> dest: 0) - weight: 1 - type: tree edge
+(src: 0 -> dest: 2) - weight: 1 - type: tree edge
+(src: 2 -> dest: 4) - weight: 1 - type: tree edge
+(src: 1 -> dest: 3) - weight: 1 - type: tree edge
+
+Total cycles => 0
+
+Graph with input2 - post DFS
+Node (0) => start visit: 1 - end visit: 10 - predecessor: (NULL)
+Node (1) => start visit: 2 - end visit: 9 - predecessor: (0)
+Node (2) => start visit: 3 - end visit: 8 - predecessor: (1)
+Node (3) => start visit: 4 - end visit: 7 - predecessor: (2)
+Node (4) => start visit: 5 - end visit: 6 - predecessor: (3)
+Edges
+(src: 0 -> dest: 1) - weight: 1 - type: tree edge
+(src: 1 -> dest: 2) - weight: 1 - type: tree edge
+(src: 2 -> dest: 3) - weight: 1 - type: tree edge
+(src: 3 -> dest: 4) - weight: 1 - type: tree edge
+(src: 4 -> dest: 0) - weight: 1 - type: backward edge
+(src: 0 -> dest: 2) - weight: 1 - type: forward edge
+(src: 2 -> dest: 4) - weight: 1 - type: forward edge
+(src: 1 -> dest: 3) - weight: 1 - type: forward edge
+
+Total cycles => 1

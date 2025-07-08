@@ -1,25 +1,54 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
-#include <algorithm>
 #include <fstream>
-#include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include "edge.hpp"
 
 class Graph {
-private:
   std::vector<Node*> nodes;
   std::vector<Edge*> edges;
-  int tot_nodes, tot_edges, time, cycles_count;
+  int time = 0, tot_nodes, tot_edges, cycles = 0;
+
+  void clear() {
+    if (!nodes.empty()) {
+      for (auto& node : nodes) {
+        delete node;
+        node = nullptr;
+      }
+
+      nodes.clear();
+    }
+
+    if (!edges.empty()) {
+      for (auto& edge : edges) {
+        delete edge;
+        edge = nullptr;
+      }
+
+      edges.clear();
+    }
+
+    time = tot_nodes = tot_edges = cycles = 0;
+  }
+
+  void clear_stream(std::istringstream& stream) {
+    stream.clear();
+    stream.str("");
+  }
+
+  void format_line(std::string& line) {
+    if (line.front() == '<') line = line.substr(1);
+    if (line.back() == '>') line.pop_back();
+    for (auto& c : line) c = c == ',' ? ' ' : c;
+  }
 
   void dfs_visit(Node* node, std::vector<Node*>& path) {
     node->set_color(Color::gray);
-
-    time++;
-    node->set_start_discovery(time);
-
+    node->set_start_discovery(++time);
     path.push_back(node);
 
     for (auto& adj : node->get_adj_list()) {
@@ -30,119 +59,123 @@ private:
         edge->set_type(EdgeType::tree);
         dfs_visit(adj, path);
       } else if (adj->get_color() == Color::gray) {
-        std::cout << "Cycle found" << std::endl;
+        std::cout << "[dfs_visit INFO] Cycle found" << std::endl;
+        ++cycles;
+
         edge->set_type(EdgeType::backward);
 
-        auto it = find(path.begin(), path.end(), adj);
-
-        if (it != path.end()) {
-          for (; it != path.end(); it++) {
-            std::cout << (*it)->get_data() << "\t";
+        int index = -1;
+        for (int i = 0; i < path.size(); i++) {
+          if (path[i] == adj) {
+            index = i;
+            break;
           }
+        }
 
-          std::cout << adj->get_data() << std::endl << std::endl;
-
-          cycles_count++;
+        if (index != -1) {
+          for (int i = index; i < path.size(); i++) std::cout << "(" << path[i]->get_data() << ") -> ";
+          std::cout << "(" << path[index]->get_data() << ")" << std::endl;
         }
       } else if (adj->get_color() == Color::black) {
-        if (node->get_start_discovery() < adj->get_start_discovery())
+        if (node->get_start_discovery() < adj->get_start_discovery()) {
           edge->set_type(EdgeType::forward);
-        else if (node->get_start_discovery() > adj->get_start_discovery())
+        } else if (node->get_start_discovery() > adj->get_start_discovery()) {
           edge->set_type(EdgeType::cross);
+        }
       }
     }
 
-    time++;
-    node->set_end_visit(time);
+    node->set_end_visit(++time);
     node->set_color(Color::black);
 
     path.pop_back();
   }
 
 public:
-  Graph() : time(0) {}
+  Graph(std::ifstream& input) { load(input); }
 
-  Graph(std::ifstream& input) : time(0) { load(input); }
-
-  ~Graph() {
-    for (auto& node : nodes) delete node;
-    for (auto& edge : edges) delete edge;
-  }
+  ~Graph() { clear(); }
 
   void load(std::ifstream& input) {
+    clear();
     input.clear();
     input.seekg(0, std::ios::beg);
 
-    nodes.clear();
-    edges.clear();
-
-    std::string totals_token;
-    std::getline(input, totals_token);
-    totals_token = totals_token.front() == '<' ? totals_token.substr(1) : totals_token;
-    if (totals_token.back() == '>') totals_token.pop_back();
-
-    for (auto& c : totals_token) c = c == ',' ? ' ' : c;
-
-    std::istringstream stream(totals_token);
-    stream >> tot_nodes >> tot_edges;
-    stream.clear();
+    std::string line;
+    std::getline(input, line);
+    format_line(line);
+    std::istringstream iss(line);
+    iss >> tot_nodes >> tot_edges;
 
     for (int i = 0; i < tot_nodes; i++) insert_node(new Node(i));
 
-    std::string edges_token;
-    while (std::getline(input, edges_token)) {
-      edges_token = edges_token.front() == '<' ? edges_token.substr(1) : edges_token;
-      if (edges_token.back() == '>') edges_token.pop_back();
-
-      for (auto& c : edges_token) c = c == ',' ? ' ' : c;
-      stream.str(edges_token);
+    while (std::getline(input, line)) {
+      format_line(line);
+      clear_stream(iss);
+      iss.str(line);
 
       int src_data, dest_data, weight;
-      stream >> src_data >> dest_data >> weight;
-
+      iss >> src_data >> dest_data >> weight;
       Node *src = get_node(src_data), *dest = get_node(dest_data);
+
       if (src && dest) insert_edge(new Edge(src, dest, weight));
 
-      stream.clear();
+      clear_stream(iss);
     }
-  }
-
-  Node* get_node(int data) {
-    for (auto& node : nodes) {
-      if (node->get_data() == data) return node;
-    }
-
-    return nullptr;
-  }
-
-  Edge* get_edge(Node* src, Node* dest) {
-    for (auto& edge : edges) {
-      if ((edge->get_source() == src && edge->get_destination() == dest) ||
-          (edge->get_source() == dest && edge->get_destination() == src))
-        return edge;
-    }
-
-    return nullptr;
   }
 
   void insert_node(Node* node) {
     nodes.push_back(node);
-
-    if (nodes.size() > tot_nodes) tot_nodes = nodes.size();
+    tot_nodes = tot_nodes < nodes.size() ? nodes.size() : tot_nodes;
   }
 
   void insert_edge(Edge* edge) {
-    edges.push_back(edge);
-
     edge->get_source()->add_adjacent(edge->get_destination());
+    edges.push_back(edge);
+    tot_edges = tot_edges < edges.size() ? edges.size() : tot_edges;
+  }
 
-    if (edges.size() > tot_edges) tot_edges = edges.size();
+  Node* get_node(int data) {
+    if (nodes.empty()) {
+      std::cerr << "[get_node ERROR] No nodes in graph" << std::endl;
+      return nullptr;
+    }
+
+    for (auto& node : nodes) {
+      if (node->get_data() == data) {
+        std::cout << "[get_node INFO] Node (" << data << ") found" << std::endl;
+        return node;
+      }
+    }
+
+    std::cerr << "[get_node ERROR] Node (" << data << ") not found" << std::endl;
+    return nullptr;
+  }
+
+  Edge* get_edge(Node* src, Node* dest) {
+    if (edges.empty()) {
+      std::cerr << "[get_edge ERROR] No edges in graph" << std::endl;
+      return nullptr;
+    }
+
+    for (auto& edge : edges) {
+      if (edge->get_source() == src && edge->get_destination() == dest) {
+        std::cout << "[get_edge INFO] Edge (" << src->get_data() << ") -> (" << dest->get_data() << ") found"
+                  << std::endl;
+        return edge;
+      }
+    }
+
+    std::cerr << "[get_edge ERROR] Edge (" << src->get_data() << ") -> (" << dest->get_data() << ") not found"
+              << std::endl;
+    return nullptr;
   }
 
   void dfs() {
     std::vector<Node*> path;
 
     for (auto& node : nodes) {
+      node->set_color(Color::white);
       node->set_predecessor(nullptr);
       node->set_start_discovery(INT_MAX);
       node->set_end_visit(INT_MAX);
@@ -153,25 +186,14 @@ public:
     }
   }
 
-  int get_cycles_count() { return cycles_count; }
-
-  void print_into_file(std::ofstream& output_file) {
-    for (auto& node : nodes) {
-      if (node->get_predecessor()) {
-        output_file << "Node: " << node->get_data() << " - (predecessor: " << node->get_predecessor()->get_data() << ")"
-                    << " - start discovery: " << node->get_start_discovery()
-                    << " - end_visit: " << node->get_end_visit() << std::endl;
-      } else {
-        output_file << "Node: " << node->get_data() << " - (predecessor: NULL)"
-                    << " - start discovery: " << node->get_start_discovery()
-                    << " - end_visit: " << node->get_end_visit() << std::endl;
-      }
-    }
-  }
-
-  void print_edges() {
-    for (auto& edge : edges) edge->print();
+  void print(std::string message = "Graph", std::ostream& out = std::cout) {
+    out << message << std::endl;
+    for (auto& node : nodes) node->print(out);
+    out << "Edges" << std::endl;
+    for (auto& edge : edges) edge->print(out);
+    out << std::endl;
+    out << "Total cycles => " << cycles << std::endl;
   }
 };
 
-#endif  // GRAPH_HPP
+#endif

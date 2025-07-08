@@ -47,9 +47,9 @@ public:
   void set_weight(int new_weight) { weight = new_weight; }
   void set_type(EdgeType new_type) { type = new_type; }
 
-  void print() {
-    std::cout << "(src: " << src->get_data() << " -> dest: " << dest->get_data() << ") - weight: " << weight
-              << " - type: " << print_type() << std::endl;
+  void print(std::ostream& out = std::cout) {
+    out << "(src: " << src->get_data() << " -> dest: " << dest->get_data() << ") - weight: " << weight
+        << " - type: " << print_type() << std::endl;
   }
 };
 
