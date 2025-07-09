@@ -2,44 +2,51 @@
 #define NODE_HPP
 
 #include <climits>
+#include <memory>
 #include <vector>
 
 enum Color { white, gray, black };
 
 class Node {
-private:
-  int data;
-  int start_discovery;
-  int end_visit;
-  Node* predecessor;
-  std::vector<Node*> adj;
+  int data, start_visit, end_visit;
+  std::weak_ptr<Node> predecessor;
+  std::vector<std::shared_ptr<Node>> adj_list;
   Color color;
 
 public:
-  Node(int data)
-      : data(data), start_discovery(INT_MAX), end_visit(INT_MAX), predecessor(nullptr), color(Color::white) {}
+  Node(int data) : data(data), start_visit(INT_MAX), end_visit(INT_MAX), color(Color::white) {}
 
-  int get_data() { return data; }
-  int get_start_discovery() { return start_discovery; }
-  int get_end_visit() { return end_visit; }
-  Node* get_predecessor() { return predecessor; }
-  Color get_color() { return color; }
-  const std::vector<Node*>& get_adj_list() const { return adj; }
-  std::vector<Node*>& get_adj_list() { return adj; }
+  const int get_data() const { return data; }
+  const int get_start_visit() const { return start_visit; }
+  const int get_end_visit() const { return end_visit; }
+  const Color get_color() const { return color; }
+  const std::weak_ptr<Node> get_predecessor() const { return predecessor; }
+  const std::vector<std::shared_ptr<Node>>& get_adj_list() const { return adj_list; }
+  std::vector<std::shared_ptr<Node>>& get_adj_list() { return adj_list; }
 
   void set_data(int data) { this->data = data; }
-  void set_start_discovery(int start_discovery) { this->start_discovery = start_discovery; }
+  void set_start_visit(int start_visit) { this->start_visit = start_visit; }
   void set_end_visit(int end_visit) { this->end_visit = end_visit; }
-  void set_predecessor(Node* predecessor) { this->predecessor = predecessor; }
-  void add_adjacent(Node* node) { adj.push_back(node); }
   void set_color(Color color) { this->color = color; }
+  void set_predecessor(const std::shared_ptr<Node>& predecessor) { this->predecessor = predecessor; }
+  void add_adjacent(const std::shared_ptr<Node>& node) { adj_list.push_back(node); }
 
   void print(std::ostream& out = std::cout) {
-    out << "Node (" << data << ") => start visit: " << start_discovery << " - end visit: " << end_visit
-        << " - predecessor: (";
-    predecessor ? out << predecessor->get_data() : out << "NULL";
+    out << "(" << data << ") => start visit: " << start_visit << " - end visit: " << end_visit << " - color: "
+        << (color == Color::white  ? "white"
+            : color == Color::gray ? "gray"
+                                   : "black")
+        << " - predecessor (";
+    auto pred = predecessor.lock();
+    if (pred)
+      out << pred->data;
+    else
+      out << "NULL";
+
     out << ")" << std::endl;
   }
 };
+
+using shared_node_ptr = std::shared_ptr<Node>;
 
 #endif  // NODE_HPP

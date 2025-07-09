@@ -1,9 +1,9 @@
 Graph
-Node (0) => start visit: 1 - end visit: 10 - predecessor: (NULL)
-Node (1) => start visit: 2 - end visit: 7 - predecessor: (0)
-Node (2) => start visit: 8 - end visit: 9 - predecessor: (0)
-Node (3) => start visit: 3 - end visit: 6 - predecessor: (1)
-Node (4) => start visit: 4 - end visit: 5 - predecessor: (3)
+(0) => start visit: 1 - end visit: 10 - color: black - predecessor (NULL)
+(1) => start visit: 2 - end visit: 7 - color: black - predecessor (0)
+(2) => start visit: 8 - end visit: 9 - color: black - predecessor (0)
+(3) => start visit: 3 - end visit: 6 - color: black - predecessor (1)
+(4) => start visit: 4 - end visit: 5 - color: black - predecessor (3)
 Edges
 (src: 0 -> dest: 1) - weight: 2 - type: tree edge
 (src: 0 -> dest: 2) - weight: 1 - type: tree edge
@@ -16,11 +16,11 @@ Edges
 Total cycles => 1
 
 Graph with input2 - pre DFS
-Node (0) => start visit: 2147483647 - end visit: 2147483647 - predecessor: (NULL)
-Node (1) => start visit: 2147483647 - end visit: 2147483647 - predecessor: (NULL)
-Node (2) => start visit: 2147483647 - end visit: 2147483647 - predecessor: (NULL)
-Node (3) => start visit: 2147483647 - end visit: 2147483647 - predecessor: (NULL)
-Node (4) => start visit: 2147483647 - end visit: 2147483647 - predecessor: (NULL)
+(0) => start visit: 2147483647 - end visit: 2147483647 - color: white - predecessor (NULL)
+(1) => start visit: 2147483647 - end visit: 2147483647 - color: white - predecessor (NULL)
+(2) => start visit: 2147483647 - end visit: 2147483647 - color: white - predecessor (NULL)
+(3) => start visit: 2147483647 - end visit: 2147483647 - color: white - predecessor (NULL)
+(4) => start visit: 2147483647 - end visit: 2147483647 - color: white - predecessor (NULL)
 Edges
 (src: 0 -> dest: 1) - weight: 1 - type: tree edge
 (src: 1 -> dest: 2) - weight: 1 - type: tree edge
@@ -34,11 +34,11 @@ Edges
 Total cycles => 0
 
 Graph with input2 - post DFS
-Node (0) => start visit: 1 - end visit: 10 - predecessor: (NULL)
-Node (1) => start visit: 2 - end visit: 9 - predecessor: (0)
-Node (2) => start visit: 3 - end visit: 8 - predecessor: (1)
-Node (3) => start visit: 4 - end visit: 7 - predecessor: (2)
-Node (4) => start visit: 5 - end visit: 6 - predecessor: (3)
+(0) => start visit: 1 - end visit: 10 - color: black - predecessor (NULL)
+(1) => start visit: 2 - end visit: 9 - color: black - predecessor (0)
+(2) => start visit: 3 - end visit: 8 - color: black - predecessor (1)
+(3) => start visit: 4 - end visit: 7 - color: black - predecessor (2)
+(4) => start visit: 5 - end visit: 6 - color: black - predecessor (3)
 Edges
 (src: 0 -> dest: 1) - weight: 1 - type: tree edge
 (src: 1 -> dest: 2) - weight: 1 - type: tree edge
