@@ -25,4 +25,7 @@ public:
   }
 };
 
+using shared_edge_ptr = std::shared_ptr<Edge>;
+using unique_edge_ptr = std::unique_ptr<Edge>;
+
 #endif  // EDGE_HPP

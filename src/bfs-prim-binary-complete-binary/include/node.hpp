@@ -3,6 +3,7 @@
 
 #include <climits>
 #include <iostream>
+#include <memory>
 #include <vector>
 
 enum Color { white, black, gray };
@@ -16,7 +17,7 @@ private:
   std::vector<Node*> adj;
 
 public:
-  Node(int data) : data(data), color(Color::white), predecessor(nullptr), distance(INT_MAX) {}
+  Node(int data) : data(data), color(Color::white), distance(INT_MAX) {}
 
   int get_data() const { return data; }
   Color get_color() const { return color; }
@@ -32,10 +33,17 @@ public:
   void add_adjacent(Node* node) { adj.push_back(node); }
 
   void print(std::ostream& out = std::cout) {
-    out << "Node (" << data << ") => distance: " << distance << " - predecessor (";
-    predecessor ? out << predecessor->data : out << "NULL";
+    out << "(" << data << ") => distance: " << distance << " - predecessor (";
+    if (predecessor)
+      out << predecessor->data;
+    else
+      out << "NULL";
+
     out << ")" << std::endl;
   }
 };
+
+using unique_node_ptr = std::unique_ptr<Node>;
+using shared_node_ptr = std::shared_ptr<Node>;
 
 #endif  // NODE_HPP
