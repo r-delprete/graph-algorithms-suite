@@ -1,9 +1,10 @@
 Graph
-Node (0) => start visit: 2147483647 - end visit: 2147483647 - distance: 2147483647 - predecessor: (NULL)
-Node (1) => start visit: 2147483647 - end visit: 2147483647 - distance: 2147483647 - predecessor: (NULL)
-Node (2) => start visit: 2147483647 - end visit: 2147483647 - distance: 2147483647 - predecessor: (NULL)
-Node (3) => start visit: 2147483647 - end visit: 2147483647 - distance: 2147483647 - predecessor: (NULL)
-Node (4) => start visit: 2147483647 - end visit: 2147483647 - distance: 2147483647 - predecessor: (NULL)
+Nodes
+(0) => start visit: 2147483647 - end visit: 2147483647 - distance: 2147483647 - color: white - predecessor: (NULL)
+(1) => start visit: 2147483647 - end visit: 2147483647 - distance: 2147483647 - color: white - predecessor: (NULL)
+(2) => start visit: 2147483647 - end visit: 2147483647 - distance: 2147483647 - color: white - predecessor: (NULL)
+(3) => start visit: 2147483647 - end visit: 2147483647 - distance: 2147483647 - color: white - predecessor: (NULL)
+(4) => start visit: 2147483647 - end visit: 2147483647 - distance: 2147483647 - color: white - predecessor: (NULL)
 Edges
 (0) -> (1) - weight: 1
 (1) -> (2) - weight: 1
@@ -14,19 +15,42 @@ Edges
 (2) -> (4) - weight: 1
 (1) -> (3) - weight: 1
 
-Hamiltonian cycle found
+Post DFS
+Nodes
+(0) => start visit: 1 - end visit: 10 - distance: 2147483647 - color: black - predecessor: (NULL)
+(1) => start visit: 2 - end visit: 9 - distance: 2147483647 - color: black - predecessor: (0)
+(2) => start visit: 3 - end visit: 8 - distance: 2147483647 - color: black - predecessor: (1)
+(3) => start visit: 4 - end visit: 7 - distance: 2147483647 - color: black - predecessor: (2)
+(4) => start visit: 5 - end visit: 6 - distance: 2147483647 - color: black - predecessor: (3)
+Edges
+(0) -> (1) - weight: 1
+(1) -> (2) - weight: 1
+(2) -> (3) - weight: 1
+(3) -> (4) - weight: 1
+(4) -> (0) - weight: 1
+(0) -> (2) - weight: 1
+(2) -> (4) - weight: 1
+(1) -> (3) - weight: 1
+
+Topological order
+(0) => start visit: 1 - end visit: 10 - distance: 2147483647 - color: black - predecessor: (NULL)
+(1) => start visit: 2 - end visit: 9 - distance: 2147483647 - color: black - predecessor: (0)
+(2) => start visit: 3 - end visit: 8 - distance: 2147483647 - color: black - predecessor: (1)
+(3) => start visit: 4 - end visit: 7 - distance: 2147483647 - color: black - predecessor: (2)
+(4) => start visit: 5 - end visit: 6 - distance: 2147483647 - color: black - predecessor: (3)
+
+[hamiltonian_cycle INFO] Hamiltonian cycle found
 (0) -> (1) -> (2) -> (3) -> (4) -> (0)
 
-Bellman Ford
-Minimum path distance from (0) to (3) => 2
-Path
-(0) -> (1) -> (3)
+BELLMAN FORD
+Minimum distance (0) -> (4) => 2
+Minimum path (0) -> (4) => (0) -> (2) -> (4)
 
-Dijkstra
-Minimum paths from source (0)
-Node (0) => 0
-Node (1) => 1
-Node (2) => 1
-Node (3) => 2
-Node (4) => 2
+DIJKSTRA
+Minimum distances from (0)
+(0) => distance: 0
+(1) => distance: 1
+(2) => distance: 1
+(3) => distance: 2
+(4) => distance: 2
 

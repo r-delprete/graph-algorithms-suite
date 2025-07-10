@@ -7,19 +7,21 @@ int main() {
   ifstream input2("input2.txt");
   ofstream output("output.txt");
 
-  Graph graph(input);
+  Graph graph(input2);
 
   graph.print();
-  graph.print("Graph", output);
+  graph.print(output);
   graph.dfs();
-  graph.print_topological_order();
-  // graph.print_topological_order(output);
+  graph.print(cout, "Post DFS");
+  graph.print(output, "Post DFS");
+  // graph.topological_order();
+  graph.topological_order(output);
 
   graph.hamiltonian_cycle(0, output);
   graph.hamiltonian_cycle(0);
 
-  Node* src = graph.get_node(0);
-  Node* dest = graph.get_node(3);
+  auto src = graph.get_node(0);
+  auto dest = graph.get_node(4);
 
   if (src && dest) {
     graph.bellman_ford(src, dest);

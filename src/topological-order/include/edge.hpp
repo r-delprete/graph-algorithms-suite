@@ -4,23 +4,25 @@
 #include "node.hpp"
 
 class Edge {
-  Node *src, *dest;
+  shared_node_ptr src, dest;
   int weight;
 
 public:
-  Edge(Node* src, Node* dest, int weight) : src(src), dest(dest), weight(weight) {}
+  Edge(shared_node_ptr& src, shared_node_ptr& dest, int weight) : src(src), dest(dest), weight(weight) {}
 
-  Node* get_source() { return src; }
-  Node* get_destination() { return dest; }
-  int get_weight() { return weight; }
+  shared_node_ptr const get_source() const { return src; }
+  shared_node_ptr const get_destination() const { return dest; }
+  const int get_weight() const { return weight; }
 
-  void set_source(Node* src) { this->src = src; }
-  void set_destination(Node* dest) { this->dest = dest; }
+  void set_source(const shared_node_ptr& src) { this->src = src; }
+  void set_destination(const shared_node_ptr& dest) { this->dest = dest; }
   void set_weight(int weight) { this->weight = weight; }
 
-  void get_info(std::ostream& out = std::cout) {
+  void print(std::ostream& out) {
     out << "(" << src->get_data() << ") -> (" << dest->get_data() << ") - weight: " << weight << std::endl;
   }
 };
+
+using shared_edge_ptr = std::shared_ptr<Edge>;
 
 #endif
