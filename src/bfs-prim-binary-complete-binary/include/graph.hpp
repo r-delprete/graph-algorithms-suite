@@ -10,18 +10,23 @@
 #include "edge.hpp"
 
 class Graph {
-  std::vector<unique_node_ptr> nodes;
-  std::vector<unique_edge_ptr> edges;
+  std::vector<shared_node_ptr> nodes;
+  std::vector<shared_edge_ptr> edges;
   int tot_nodes, tot_edges;
 
   struct Compare {
-    bool operator()(Node* node1, Node* node2) { return node1->get_distance() > node2->get_distance(); }
+    bool operator()(const shared_node_ptr& node1, const shared_node_ptr& node2) {
+      return node1->get_distance() > node2->get_distance();
+    }
   };
 
   void format_line(std::string& line) {
+    if (line.empty()) return;
     if (line.front() == '<') line = line.substr(1);
     if (line.back() == '>') line.pop_back();
-    for (auto& c : line) c = c == ',' ? ' ' : c;
+    for (auto& ch : line) {
+      if (ch == ',') ch = ' ';
+    }
   }
 
   void clear_stream(std::istringstream& stream) {
@@ -46,82 +51,89 @@ public:
     std::string line;
     std::getline(input, line);
     format_line(line);
+
     std::istringstream iss(line);
     iss >> tot_nodes >> tot_edges;
+
+    for (int i = 0; i < tot_nodes; i++) insert_node(node_factory_shared(i));
+
     clear_stream(iss);
     line.clear();
-
-    for (int i = 0; i < tot_nodes; i++) insert_node(unique_node_ptr(new Node(i)));
-
     while (std::getline(input, line)) {
       format_line(line);
       iss.str(line);
+
       int src_data, dest_data, weight;
       iss >> src_data >> dest_data >> weight;
-
-      Node *src = get_node(src_data), *dest = get_node(dest_data);
-      if (src && dest) insert_edge(unique_edge_ptr(new Edge(src, dest, weight)));
+      auto src = get_node(src_data), dest = get_node(dest_data);
+      insert_edge(edge_factory_shared(src, dest, weight));
 
       clear_stream(iss);
       line.clear();
     }
   }
 
-  void insert_node(unique_node_ptr node) {
-    nodes.push_back(std::move(node));
+  void insert_node(const shared_node_ptr& node) {
+    nodes.push_back(node);
     if (nodes.size() > tot_nodes) tot_nodes = nodes.size();
   }
 
-  void insert_edge(unique_edge_ptr edge) {
+  void insert_edge(const shared_edge_ptr& edge) {
     edge->get_source()->add_adjacent(edge->get_destination());
     edge->get_destination()->add_adjacent(edge->get_source());
-    edges.push_back(std::move(edge));
+    edges.push_back(edge);
     if (edges.size() > tot_edges) tot_edges = edges.size();
   }
 
-  Node* get_node(int data) {
-    for (auto& node : nodes) {
-      if (node->get_data() == data) return node.get();
+  const shared_node_ptr get_node(const int data) const {
+    if (nodes.empty()) {
+      std::cerr << "[get_node ERROR] No nodes in graph" << std::endl;
+      return nullptr;
     }
 
-    std::cerr << "[get_node ERROR] => Node (" << data << ") not found" << std::endl;
+    for (auto& node : nodes) {
+      if (node->get_data() == data) return node;
+    }
+
     return nullptr;
   }
 
-  Edge* get_edge(Node* src, Node* dest) {
+  const shared_edge_ptr get_edge(const shared_node_ptr& src, const shared_node_ptr& dest) const {
+    if (edges.empty()) {
+      std::cerr << "[get_edge ERROR] No edge in graph" << std::endl;
+      return nullptr;
+    }
+
     for (auto& edge : edges) {
       if ((edge->get_source() == src && edge->get_destination() == dest) ||
           (edge->get_source() == dest && edge->get_destination() == src))
-        return edge.get();
+        return edge;
     }
 
     return nullptr;
   }
 
-  void bfs(Node* src) {
-    for (auto& node : nodes) {
-      node->set_color(Color::white);
-      node->set_predecessor(nullptr);
-      node->set_distance(INT_MAX);
-    }
+  void bfs(const shared_node_ptr& src) {
+    for (auto& node : nodes) node->reset();
 
     src->set_distance(0);
     src->set_color(Color::gray);
     src->set_predecessor(nullptr);
 
-    std::queue<Node*> q;
+    std::queue<shared_node_ptr> q;
     q.push(src);
 
     while (!q.empty()) {
-      Node* node = q.front();
+      const auto node = q.front();
       q.pop();
 
       for (auto& adj : node->get_adj_list()) {
-        if (adj->get_color() == Color::white) {
-          adj->set_color(Color::gray);
-          adj->set_predecessor(node);
-          adj->set_distance(node->get_distance() + 1);
-          q.push(adj);
+        const auto adjacent = adj.lock();
+        if (adjacent->get_color() == Color::white) {
+          adjacent->set_color(Color::gray);
+          adjacent->set_predecessor(node);
+          adjacent->set_distance(node->get_distance() + 1);
+          q.push(adjacent);
         }
       }
 
@@ -129,16 +141,21 @@ public:
     }
   }
 
-  void print(std::string message = "Graph", std::ostream& out = std::cout) {
-    out << message << std::endl << "Nodes" << std::endl;
+  void print(std::ostream& out = std::cout, const std::string message = "Graph") {
+    out << message << std::endl;
+
+    out << "Nodes" << std::endl;
     for (auto& node : nodes) node->print(out);
+    out << std::endl;
 
     out << "Edges" << std::endl;
     for (auto& edge : edges) edge->print(out);
     out << std::endl;
+
+    out << std::endl;
   }
 
-  void prim(Node* src) {
+  void prim(const shared_node_ptr& src) {
     for (auto& node : nodes) {
       node->set_distance(INT_MAX);
       node->set_predecessor(nullptr);
@@ -147,23 +164,24 @@ public:
     src->set_distance(0);
     src->set_predecessor(nullptr);
 
-    std::priority_queue<Node*, std::vector<Node*>, Compare> pq;
+    std::priority_queue<shared_node_ptr, std::vector<shared_node_ptr>, Compare> pq;
     pq.push(src);
 
-    std::set<Node*> in_mst;
+    std::set<shared_node_ptr> in_mst;
 
     while (!pq.empty()) {
-      Node* node = pq.top();
+      const auto node = pq.top();
       pq.pop();
       in_mst.insert(node);
 
       for (auto& adj : node->get_adj_list()) {
-        Edge* edge = get_edge(node, adj);
+        const auto adjacent = adj.lock();
+        const auto edge = get_edge(node, adjacent);
 
-        if (in_mst.find(adj) == in_mst.end() && adj->get_distance() > edge->get_weight()) {
-          adj->set_predecessor(node);
-          adj->set_distance(edge->get_weight());
-          pq.push(adj);
+        if ((in_mst.find(adjacent) == in_mst.end()) && adjacent->get_distance() > edge->get_weight()) {
+          adjacent->set_predecessor(node);
+          adjacent->set_distance(edge->get_weight());
+          pq.push(adjacent);
         }
       }
     }
@@ -180,7 +198,7 @@ public:
       int children = 0;
 
       for (auto& adj : node->get_adj_list()) {
-        if (adj != node->get_predecessor()) children++;
+        if (adj.lock() != node->get_predecessor().lock()) children++;
       }
 
       if (children > 2) return false;
@@ -191,16 +209,13 @@ public:
 
   bool is_complete_binary() {
     for (auto& node : nodes) {
-      std::vector<Node*> children;
+      std::vector<shared_node_ptr> children;
 
       for (auto& adj : node->get_adj_list()) {
-        if (adj != node->get_predecessor()) children.push_back(adj);
+        if (adj.lock() != node->get_predecessor().lock()) children.push_back(adj.lock());
       }
 
-      if (!children.empty() && children.size() < 2) {
-        children.clear();
-        return false;
-      }
+      if (!children.empty() && children.size() < 2) return false;
     }
 
     return true;

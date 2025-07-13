@@ -3,16 +3,16 @@
 using namespace std;
 
 int main() {
-  ifstream input("input.txt");
+  ifstream input("input2.txt");
   ofstream output("output.txt");
 
   Graph graph(input);
   graph.print();
 
-  Node* src = graph.get_node(0);
+  auto src = graph.get_node(0);
   if (src) {
     graph.bfs(src);
-    graph.print("After BFS visit");
+    graph.print(cout, "After BFS visit");
 
     graph.prim(src);
     graph.print_mst();
