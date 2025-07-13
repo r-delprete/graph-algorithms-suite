@@ -14,8 +14,9 @@ class Graph {
   std::vector<shared_node_ptr> nodes;
   std::vector<shared_edge_ptr> edges;
   int time = 0, tot_nodes, tot_edges;
-  std::stack<shared_node_ptr> stack;
   std::vector<std::vector<shared_node_ptr>> scc_list;
+  std::stack<shared_node_ptr> stack_topological;
+  std::stack<shared_node_ptr> stack_sccs_order;
 
   struct Compare {
     bool operator()(const shared_node_ptr& node1, const shared_node_ptr& node2) {
@@ -24,16 +25,17 @@ class Graph {
   };
 
   void format_line(std::string& line) {
+    if (line.empty()) return;
     if (line.front() == '<') line = line.substr(1);
     if (line.back() == '>') line.pop_back();
-    for (auto& c : line) {
-      if (c == ',') c = 32;
+    for (auto& ch : line) {
+      if (ch == ',') ch = ' ';
     }
   }
 
-  void clear_stream(std::istringstream& iss) {
-    iss.clear();
-    iss.str("");
+  void clear_stream(std::istringstream& stream) {
+    stream.clear();
+    stream.str("");
   }
 
   void dfs_visit(const shared_node_ptr& node) {
@@ -49,75 +51,49 @@ class Graph {
 
     node->set_end_visit(++time);
     node->set_color(Color::black);
-
-    stack.push(node);
+    stack_topological.push(node);
+    stack_sccs_order.push(node);
   }
 
-  void dfs_visit_util(const shared_node_ptr& node, std::vector<bool>& visited,
-                      std::vector<shared_node_ptr>& current_scc) {
+  std::shared_ptr<Graph> create_transpose() {
+    std::shared_ptr<Graph> graph = std::make_shared<Graph>();
+
+    for (auto& node : nodes) graph->insert_node(node_factory(node->get_data()));
+
+    for (auto& edge : edges) {
+      auto src = graph->get_node(edge->get_destination()->get_data());
+      auto dest = graph->get_node(edge->get_source()->get_data());
+      graph->insert_edge(edge_factory(src, dest, edge->get_weight()));
+    }
+
+    return graph;
+  }
+
+  void dfs_util(const shared_node_ptr& node, std::vector<shared_node_ptr>& scc, std::vector<bool>& visited) {
     visited[node->get_data()] = true;
-    current_scc.push_back(node);
+    scc.push_back(node);
 
     for (auto& adj : node->get_adj_list()) {
-      if (!visited[adj->get_data()]) dfs_visit_util(adj, visited, current_scc);
+      if (!visited[adj->get_data()]) dfs_util(adj, scc, visited);
     }
   }
 
   void initialize_single_source(const shared_node_ptr& src) {
     for (auto& node : nodes) {
-      node->set_distance(INT_MAX);
       node->set_predecessor(nullptr);
+      node->set_distance(INT_MAX);
     }
+
     src->set_distance(0);
     src->set_predecessor(nullptr);
   }
 
   void relax(const shared_edge_ptr& edge) {
-    if (edge->get_destination()->get_distance() > edge->get_source()->get_distance() + edge->get_weight()) {
-      edge->get_destination()->set_distance(edge->get_source()->get_distance() + edge->get_weight());
-      edge->get_destination()->set_predecessor(edge->get_source());
-    }
-  }
-
-  std::shared_ptr<Graph> create_transpose() {
-    auto g = std::make_shared<Graph>();
-
-    for (auto& node : nodes) g->insert_node(std::make_shared<Node>(node->get_data()));
-    for (auto& edge : edges) {
-      auto src_data = edge->get_source()->get_data();
-      auto dest_data = edge->get_destination()->get_data();
-      auto src = g->get_node(dest_data);
-      auto dest = g->get_node(src_data);
-      g->insert_edge(std::make_shared<Edge>(src, dest, edge->get_weight()));
-    }
-    return g;
-  }
-
-  void get_strongly_connected_components() {
-    for (auto& node : nodes) {
-      node->set_color(Color::white);
-      node->set_start_visit(INT_MAX);
-      node->set_end_visit(INT_MAX);
-      node->set_predecessor(nullptr);
-    }
-
-    for (auto& node : nodes) {
-      if (node->get_color() == Color::white) dfs_visit(node);
-    }
-
-    auto transposed_graph = create_transpose();
-    scc_list.clear();
-    std::vector<bool> visited(tot_nodes, false);
-
-    while (!stack.empty()) {
-      auto node = stack.top();
-      stack.pop();
-
-      if (!visited[node->get_data()]) {
-        std::vector<shared_node_ptr> current_scc;
-        dfs_visit_util(transposed_graph->get_node(node->get_data()), visited, current_scc);
-        scc_list.push_back(current_scc);
-      }
+    auto src = edge->get_source();
+    auto dest = edge->get_destination();
+    if (dest->get_distance() > src->get_distance() + edge->get_weight()) {
+      dest->set_distance(src->get_distance() + edge->get_weight());
+      dest->set_predecessor(src);
     }
   }
 
@@ -130,6 +106,7 @@ public:
     nodes.clear();
     edges.clear();
     time = tot_nodes = tot_edges = 0;
+    scc_list.clear();
   }
 
   void load(std::ifstream& input) {
@@ -143,9 +120,8 @@ public:
     std::istringstream iss(line);
     iss >> tot_nodes >> tot_edges;
     clear_stream(iss);
-    line.clear();
 
-    for (int i = 0; i < tot_nodes; i++) insert_node(shared_node_ptr(new Node(i)));
+    for (int i = 0; i < tot_nodes; i++) insert_node(node_factory(i));
 
     while (std::getline(input, line)) {
       int src_data, dest_data, weight;
@@ -155,10 +131,10 @@ public:
       iss >> src_data >> dest_data >> weight;
       auto src = get_node(src_data), dest = get_node(dest_data);
 
-      if (src && dest) insert_edge(std::make_shared<Edge>(src, dest, weight));
+      if (src && dest) insert_edge(edge_factory(src, dest, weight));
 
-      clear_stream(iss);
       line.clear();
+      clear_stream(iss);
     }
   }
 
@@ -167,7 +143,13 @@ public:
     if (nodes.size() > tot_nodes) tot_nodes = nodes.size();
   }
 
-  shared_node_ptr get_node(int data) {
+  void insert_edge(const shared_edge_ptr& edge) {
+    edge->get_source()->add_adjacent(edge->get_destination());
+    edges.push_back(edge);
+    if (edges.size() > tot_edges) tot_edges = edges.size();
+  }
+
+  shared_node_ptr get_node(const int data) {
     if (nodes.empty()) {
       std::cerr << "[get_node ERROR] No nodes in graph" << std::endl;
       return nullptr;
@@ -177,13 +159,12 @@ public:
       if (node->get_data() == data) return node;
     }
 
-    std::cerr << "[get_node ERROR] Node (" << data << ") not found" << std::endl;
     return nullptr;
   }
 
   shared_edge_ptr get_edge(const shared_node_ptr& src, const shared_node_ptr& dest) {
     if (edges.empty()) {
-      std::cerr << "[get_edge ERROR] No edges in graph" << std::endl;
+      std::cerr << "[get_edge ERROR] No edge in graph" << std::endl;
       return nullptr;
     }
 
@@ -191,31 +172,61 @@ public:
       if (edge->get_source() == src && edge->get_destination() == dest) return edge;
     }
 
-    std::cerr << "[get_edge ERROR] Edge (" << src->get_data() << ") -> (" << dest->get_data() << ") not found"
-              << std::endl;
     return nullptr;
   }
 
-  void insert_edge(const shared_edge_ptr& edge) {
-    edges.push_back(edge);
-    edge->get_source()->add_adjacent(edge->get_destination());
-    if (edges.size() > tot_edges) tot_edges = edges.size();
+  void compute_sccs() {
+    for (auto& node : nodes) node->reset();
+
+    for (auto& node : nodes) {
+      if (node->get_color() == Color::white) dfs_visit(node);
+    }
+
+    auto transposed = create_transpose();
+    std::vector<bool> visited(tot_nodes, false);
+
+    while (!stack_sccs_order.empty()) {
+      auto node = stack_sccs_order.top();
+      stack_sccs_order.pop();
+
+      auto transposed_node = transposed->get_node(node->get_data());
+
+      if (!visited[transposed_node->get_data()]) {
+        std::vector<shared_node_ptr> scc;
+        dfs_util(transposed_node, scc, visited);
+        scc_list.push_back(scc);
+      }
+    }
   }
 
   void dfs() {
-    for (auto& node : nodes) {
-      node->set_color(Color::white);
-      node->set_start_visit(INT_MAX);
-      node->set_end_visit(INT_MAX);
-      node->set_predecessor(nullptr);
-    }
+    for (auto& node : nodes) node->reset();
 
     for (auto& node : nodes) {
       if (node->get_color() == Color::white) dfs_visit(node);
     }
   }
 
-  void print(std::ostream& out = std::cout, std::string message = "Graph") {
+  void print_sccs(std::ostream& out = std::cout, const std::string message = "Strongly connected components") {
+    out << message << std::endl;
+    for (int i = 0; i < scc_list.size(); i++) {
+      out << "Component #" << i + 1 << std::endl;
+      for (auto& node : scc_list[i]) out << "(" << node->get_data() << ")\t";
+      out << std::endl;
+    }
+  }
+
+  void topological_order(std::ostream& out = std::cout, const std::string message = "Topological order") {
+    out << message << std::endl;
+    while (!stack_topological.empty()) {
+      auto node = stack_topological.top();
+      stack_topological.pop();
+      node->print(out);
+    }
+    out << std::endl;
+  }
+
+  void print(std::ostream& out = std::cout, const std::string message = "Graph") {
     out << message << std::endl << "Nodes" << std::endl;
     for (auto& node : nodes) node->print(out);
     out << "Edges" << std::endl;
@@ -223,62 +234,47 @@ public:
     out << std::endl;
   }
 
-  void topological_order(std::ostream& out = std::cout) {
-    out << "Topological order" << std::endl;
-    while (!stack.empty()) {
-      auto node = stack.top();
-      stack.pop();
-
-      node->print(out);
-    }
-
-    out << std::endl;
-  }
-
   void bellman_ford(const shared_node_ptr& src, const shared_node_ptr& dest, std::ostream& out = std::cout) {
-    std::vector<shared_node_ptr> path;
-
     initialize_single_source(src);
 
     for (int i = 0; i < tot_nodes; i++) {
       for (auto& edge : edges) relax(edge);
     }
 
-    if (dest->get_distance() == INT_MAX) {
-      out << "[bellman_ford ERROR] Destination node (" << dest->get_data() << ") is unreachable from ("
-          << src->get_data() << ")" << std::endl;
-      return;
-    }
-
     for (auto& edge : edges) {
-      int src_distance = edge->get_source()->get_distance();
-      int dest_distance = edge->get_destination()->get_distance();
-      if (src_distance != INT_MAX && dest_distance > src_distance + edge->get_weight()) {
-        out << "[bellman_ford ERROR] Graph contains a negative-weight cycle" << std::endl;
+      auto src = edge->get_source();
+      auto dest = edge->get_destination();
+
+      if (dest->get_distance() > src->get_distance() + edge->get_weight()) {
+        std::cerr << "[bellman_ford ERROR] Negative edge found" << std::endl;
         return;
       }
     }
 
-    shared_node_ptr current = dest;
+    std::vector<shared_node_ptr> path;
+    auto current = dest;
     while (current) {
       path.push_back(current);
       current = current->get_predecessor().lock();
     }
 
     out << "BELLMAN FORD" << std::endl
-        << "Minimum distance (" << src->get_data() << ") -> (" << dest->get_data() << ") => " << dest->get_distance()
-        << std::endl;
-    out << "Minimum path (" << src->get_data() << ") -> (" << dest->get_data() << ") => ";
-    for (int i = path.size() - 1; i > 0; i--) out << "(" << path[i]->get_data() << ") -> ";
+        << "Minimum path distance from (" << src->get_data() << ") to (" << dest->get_data() << ") => "
+        << dest->get_distance() << std::endl;
+    out << "Path" << std::endl;
+    for (int i = path.size() - 1; i > 0; i--) out << "(" << path[i]->get_data() << ")\t";
     out << "(" << path[0]->get_data() << ")" << std::endl;
+
+    out << std::endl;
   }
 
   void dijkstra(const shared_node_ptr& src, std::ostream& out = std::cout) {
     initialize_single_source(src);
+
     std::priority_queue<shared_node_ptr, std::vector<shared_node_ptr>, Compare> pq;
     for (auto& node : nodes) pq.push(node);
-    std::set<shared_node_ptr> visited;
 
+    std::set<shared_node_ptr> visited;
     while (!pq.empty()) {
       auto node = pq.top();
       pq.pop();
@@ -288,6 +284,7 @@ public:
 
       for (auto& adj : node->get_adj_list()) {
         auto edge = get_edge(node, adj);
+
         if (edge) {
           relax(edge);
           if (visited.find(adj) == visited.end()) pq.push(adj);
@@ -295,23 +292,9 @@ public:
       }
     }
 
-    out << std::endl << "DIJKSTRA" << std::endl << "Minimum distances from (" << src->get_data() << ")" << std::endl;
-    for (auto& node : nodes) out << "(" << node->get_data() << ") => distance: " << node->get_distance() << std::endl;
+    out << "DIJKSTRA" << std::endl << "Minimum paths distance from (" << src->get_data() << ")" << std::endl;
+    for (auto& node : nodes) out << "(" << node->get_data() << ") => " << node->get_distance() << std::endl;
     out << std::endl;
-  }
-
-  void print_scc(std::ostream& out = std::cout, std::string message = "Strongly connected components") {
-    get_strongly_connected_components();
-    out << message << std::endl;
-
-    int count = 0;
-    for (auto& scc : scc_list) {
-      out << "Component #" << ++count << std::endl;
-      for (auto& node : scc) {
-        std::cout << "(" << node->get_data() << ")\n";
-      }
-      out << std::endl;
-    }
   }
 };
 

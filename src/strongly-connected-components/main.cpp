@@ -17,6 +17,8 @@ int main() {
   graph.print(output, "Post DFS");
   // graph.topological_order();
   graph.topological_order(output);
+  graph.compute_sccs();
+  graph.print_sccs();
 
   auto src = graph.get_node(0);
   auto dest = graph.get_node(4);
@@ -35,7 +37,9 @@ int main() {
 
   graph.reset();
   graph.load(scc_input);
-  graph.print_scc();
+  graph.print(cout, "SCC input");
+  graph.compute_sccs();
+  graph.print_sccs();
 
   input.close();
   input2.close();
