@@ -13,9 +13,11 @@ int main() {
   if (src) {
     graph.bfs(src);
     graph.print(cout, "After BFS visit");
+    graph.print(output, "After BFS visit");
 
     graph.prim(src);
     graph.print_mst();
+    graph.print_mst(output);
   }
 
   if (graph.is_complete_binary())

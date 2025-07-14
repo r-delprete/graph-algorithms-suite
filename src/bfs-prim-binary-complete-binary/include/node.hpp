@@ -20,7 +20,7 @@ public:
 
   const int get_data() const { return data; }
   const Color get_color() const { return color; }
-  const std::weak_ptr<Node>& get_predecessor() const { return predecessor; }
+  const std::shared_ptr<Node>& get_predecessor() const { return predecessor.lock(); }
   const int get_distance() const { return distance; }
   const std::vector<std::weak_ptr<Node>>& get_adj_list() const { return adj; }
 
@@ -49,6 +49,6 @@ public:
 };
 
 using shared_node_ptr = std::shared_ptr<Node>;
-shared_node_ptr node_factory_shared(const int data) { return std::make_shared<Node>(data); }
+shared_node_ptr create_node(const int data) { return std::make_shared<Node>(data); }
 
 #endif  // NODE_HPP

@@ -15,7 +15,7 @@ private:
   int weight;
   EdgeType type;
 
-  std::string print_type() {
+  std::string print_type() const {
     switch (type) {
       case EdgeType::tree:
         return "tree edge";
@@ -36,19 +36,19 @@ private:
   }
 
 public:
-  Edge(shared_node_ptr& src, shared_node_ptr& dest, int weight)
+  Edge(const shared_node_ptr& src, const shared_node_ptr& dest, const int weight)
       : src(src), dest(dest), weight(weight), type(EdgeType::tree) {}
 
-  shared_node_ptr get_source() const { return src; }
-  shared_node_ptr get_destination() const { return dest; }
-  int get_weight() { return weight; }
-  EdgeType get_type() { return type; }
-  std::string type_string() { return print_type(); }
+  const shared_node_ptr& get_source() const { return src; }
+  const shared_node_ptr& get_destination() const { return dest; }
+  const int get_weight() const { return weight; }
+  const EdgeType get_type() const { return type; }
+  const std::string type_string() const { return print_type(); }
 
   void set_source(const shared_node_ptr& src) { this->src = src; }
   void set_destination(const shared_node_ptr& dest) { this->dest = dest; }
-  void set_weight(int weight) { this->weight = weight; }
-  void set_type(EdgeType type) { this->type = type; }
+  void set_weight(const int weight) { this->weight = weight; }
+  void set_type(const EdgeType type) { this->type = type; }
 
   void print(std::ostream& out = std::cout) {
     out << "(src: " << src->get_data() << " -> dest: " << dest->get_data() << ") - weight: " << weight
@@ -57,5 +57,8 @@ public:
 };
 
 using shared_edge_ptr = std::shared_ptr<Edge>;
+shared_edge_ptr create_edge(const shared_node_ptr& src, const shared_node_ptr& dest, const int weight) {
+  return std::make_shared<Edge>(src, dest, weight);
+}
 
 #endif  // EDGE_HPP

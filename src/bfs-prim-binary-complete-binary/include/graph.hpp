@@ -55,7 +55,7 @@ public:
     std::istringstream iss(line);
     iss >> tot_nodes >> tot_edges;
 
-    for (int i = 0; i < tot_nodes; i++) insert_node(node_factory_shared(i));
+    for (int i = 0; i < tot_nodes; i++) insert_node(create_node(i));
 
     clear_stream(iss);
     line.clear();
@@ -66,7 +66,7 @@ public:
       int src_data, dest_data, weight;
       iss >> src_data >> dest_data >> weight;
       auto src = get_node(src_data), dest = get_node(dest_data);
-      insert_edge(edge_factory_shared(src, dest, weight));
+      insert_edge(create_edge(src, dest, weight));
 
       clear_stream(iss);
       line.clear();
@@ -85,9 +85,9 @@ public:
     if (edges.size() > tot_edges) tot_edges = edges.size();
   }
 
-  const shared_node_ptr get_node(const int data) const {
+  shared_node_ptr get_node(const int data) const {
     if (nodes.empty()) {
-      std::cerr << "[get_node ERROR] No nodes in graph" << std::endl;
+      std::cerr << "[get_node ERROR] No node in graph" << std::endl;
       return nullptr;
     }
 
@@ -98,7 +98,7 @@ public:
     return nullptr;
   }
 
-  const shared_edge_ptr get_edge(const shared_node_ptr& src, const shared_node_ptr& dest) const {
+  shared_edge_ptr get_edge(const shared_node_ptr& src, const shared_node_ptr& dest) const {
     if (edges.empty()) {
       std::cerr << "[get_edge ERROR] No edge in graph" << std::endl;
       return nullptr;
@@ -117,8 +117,8 @@ public:
     for (auto& node : nodes) node->reset();
 
     src->set_distance(0);
-    src->set_color(Color::gray);
     src->set_predecessor(nullptr);
+    src->set_color(Color::gray);
 
     std::queue<shared_node_ptr> q;
     q.push(src);
@@ -129,6 +129,7 @@ public:
 
       for (auto& adj : node->get_adj_list()) {
         const auto adjacent = adj.lock();
+
         if (adjacent->get_color() == Color::white) {
           adjacent->set_color(Color::gray);
           adjacent->set_predecessor(node);
@@ -165,8 +166,7 @@ public:
     src->set_predecessor(nullptr);
 
     std::priority_queue<shared_node_ptr, std::vector<shared_node_ptr>, Compare> pq;
-    pq.push(src);
-
+    for (auto& node : nodes) pq.push(node);
     std::set<shared_node_ptr> in_mst;
 
     while (!pq.empty()) {
@@ -178,7 +178,7 @@ public:
         const auto adjacent = adj.lock();
         const auto edge = get_edge(node, adjacent);
 
-        if ((in_mst.find(adjacent) == in_mst.end()) && adjacent->get_distance() > edge->get_weight()) {
+        if (in_mst.find(adjacent) == in_mst.end() && adjacent->get_distance() > edge->get_weight()) {
           adjacent->set_predecessor(node);
           adjacent->set_distance(edge->get_weight());
           pq.push(adjacent);
@@ -198,7 +198,7 @@ public:
       int children = 0;
 
       for (auto& adj : node->get_adj_list()) {
-        if (adj.lock() != node->get_predecessor().lock()) children++;
+        if (adj.lock() != node->get_predecessor()) children++;
       }
 
       if (children > 2) return false;
@@ -212,7 +212,7 @@ public:
       std::vector<shared_node_ptr> children;
 
       for (auto& adj : node->get_adj_list()) {
-        if (adj.lock() != node->get_predecessor().lock()) children.push_back(adj.lock());
+        if (adj.lock() != node->get_predecessor()) children.push_back(adj.lock());
       }
 
       if (!children.empty() && children.size() < 2) return false;

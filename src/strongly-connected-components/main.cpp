@@ -12,13 +12,11 @@ int main() {
 
   graph.print();
   graph.print(output);
-  graph.dfs();
-  graph.print(cout, "Post DFS");
-  graph.print(output, "Post DFS");
-  // graph.topological_order();
-  graph.topological_order(output);
+  graph.compute_topological_order();
+  graph.print_topological_order(output);
   graph.compute_sccs();
   graph.print_sccs();
+  graph.print_sccs(output);
 
   auto src = graph.get_node(0);
   auto dest = graph.get_node(4);
@@ -26,20 +24,10 @@ int main() {
   if (src && dest) {
     graph.bellman_ford(src, dest);
     graph.bellman_ford(src, dest, output);
-  }
 
-  src = graph.get_node(0);
-
-  if (src) {
     graph.dijkstra(src);
     graph.dijkstra(src, output);
   }
-
-  graph.reset();
-  graph.load(scc_input);
-  graph.print(cout, "SCC input");
-  graph.compute_sccs();
-  graph.print_sccs();
 
   input.close();
   input2.close();

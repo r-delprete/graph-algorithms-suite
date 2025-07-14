@@ -2,6 +2,7 @@
 #define NODE_HPP
 
 #include <climits>
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -10,7 +11,7 @@ enum Color { white, gray, black };
 class Node {
   int data, start_visit, end_visit;
   std::weak_ptr<Node> predecessor;
-  std::vector<std::shared_ptr<Node>> adj_list;
+  std::vector<std::weak_ptr<Node>> adj_list;
   Color color;
 
 public:
@@ -21,8 +22,7 @@ public:
   const int get_end_visit() const { return end_visit; }
   const Color get_color() const { return color; }
   const std::weak_ptr<Node> get_predecessor() const { return predecessor; }
-  const std::vector<std::shared_ptr<Node>>& get_adj_list() const { return adj_list; }
-  std::vector<std::shared_ptr<Node>>& get_adj_list() { return adj_list; }
+  const std::vector<std::weak_ptr<Node>>& get_adj_list() const { return adj_list; }
 
   void set_data(int data) { this->data = data; }
   void set_start_visit(int start_visit) { this->start_visit = start_visit; }
@@ -48,5 +48,6 @@ public:
 };
 
 using shared_node_ptr = std::shared_ptr<Node>;
+shared_node_ptr create_node(const int data) { return std::make_shared<Node>(data); }
 
 #endif  // NODE_HPP

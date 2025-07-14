@@ -26,7 +26,7 @@ public:
 };
 
 using shared_edge_ptr = std::shared_ptr<Edge>;
-shared_edge_ptr edge_factory_shared(const shared_node_ptr& src, const shared_node_ptr& dest, const int weight) {
+shared_edge_ptr create_edge(const shared_node_ptr& src, const shared_node_ptr& dest, const int weight) {
   return std::make_shared<Edge>(src, dest, weight);
 }
 

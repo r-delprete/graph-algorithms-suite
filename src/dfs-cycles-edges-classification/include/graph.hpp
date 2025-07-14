@@ -28,20 +28,21 @@ class Graph {
     path.push_back(node);
 
     for (auto& adj : node->get_adj_list()) {
-      auto edge = get_edge(node, adj);
+      const auto adjacent = adj.lock();
+      const auto edge = get_edge(node, adjacent);
 
-      if (adj->get_color() == Color::white) {
-        adj->set_predecessor(node);
+      if (adjacent->get_color() == Color::white) {
+        adjacent->set_predecessor(node);
         edge->set_type(EdgeType::tree);
-        dfs_visit(adj, path);
-      } else if (adj->get_color() == Color::gray) {
+        dfs_visit(adjacent, path);
+      } else if (adjacent->get_color() == Color::gray) {
+        std::cout << "Cycle found" << std::endl;
+        cycles++;
         edge->set_type(EdgeType::backward);
 
-        std::cout << "[dfs_visit INFO] Cycle found" << std::endl;
-        ++cycles;
         int start = -1;
         for (int i = 0; i < path.size(); i++) {
-          if (adj == path[i]) {
+          if (path[i] == adjacent) {
             start = i;
             break;
           }
@@ -50,17 +51,19 @@ class Graph {
         if (start != -1) {
           for (int i = start; i < path.size(); i++) std::cout << "(" << path[i]->get_data() << ") -> ";
           std::cout << "(" << path[start]->get_data() << ")" << std::endl;
+          std::cout << std::endl;
         }
-      } else if (adj->get_color() == Color::black) {
-        if (node->get_start_visit() < adj->get_start_visit())
+      } else if (adjacent->get_color() == Color::black) {
+        if (node->get_start_visit() < adjacent->get_start_visit())
           edge->set_type(EdgeType::forward);
-        else if (node->get_start_visit() > adj->get_start_visit())
+        else if (node->get_start_visit() > adjacent->get_start_visit())
           edge->set_type(EdgeType::cross);
       }
     }
 
     node->set_color(Color::black);
     node->set_end_visit(++time);
+
     path.pop_back();
   }
 
@@ -86,7 +89,7 @@ public:
     clear_stream(iss);
     line.clear();
 
-    for (int i = 0; i < tot_nodes; i++) insert_node(shared_node_ptr(new Node(i)));
+    for (int i = 0; i < tot_nodes; i++) insert_node(create_node(i));
 
     while (std::getline(input, line)) {
       format_line(line);
@@ -95,9 +98,9 @@ public:
       int src_data, dest_data, weight;
       iss >> src_data >> dest_data >> weight;
 
-      auto src = get_node(src_data), dest = get_node(dest_data);
+      const auto src = get_node(src_data), dest = get_node(dest_data);
 
-      if (src && dest) insert_edge(shared_edge_ptr(new Edge(src, dest, weight)));
+      if (src && dest) insert_edge(create_edge(src, dest, weight));
 
       clear_stream(iss);
       line.clear();
@@ -122,13 +125,9 @@ public:
     }
 
     for (auto& node : nodes) {
-      if (node->get_data() == data) {
-        std::cout << "[get_node INFO] Node (" << data << ") found" << std::endl;
-        return node;
-      }
+      if (node->get_data() == data) return node;
     }
 
-    std::cerr << "[get_node ERROR] Node (" << data << ") not found" << std::endl;
     return nullptr;
   }
 
@@ -139,15 +138,9 @@ public:
     }
 
     for (auto& edge : edges) {
-      if (edge->get_source() == src && edge->get_destination() == dest) {
-        std::cout << "[get_edge INFO] Edge (" << src->get_data() << ") -> (" << dest->get_data() << ") found"
-                  << std::endl;
-        return edge;
-      }
+      if (edge->get_source() == src && edge->get_destination() == dest) return edge;
     }
 
-    std::cerr << "[get_edge ERROR] Edge (" << src->get_data() << ") -> (" << dest->get_data() << ") not found"
-              << std::endl;
     return nullptr;
   }
 
@@ -172,6 +165,8 @@ public:
     for (auto& node : nodes) {
       if (node->get_color() == Color::white) dfs_visit(node, path);
     }
+
+    path.clear();
   }
 };
 
