@@ -27,6 +27,8 @@ int main() {
 
     graph.dijkstra(src);
     graph.dijkstra(src, output);
+
+    graph.prim(src);
   }
 
   input.close();

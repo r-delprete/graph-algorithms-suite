@@ -4,28 +4,27 @@
 #include "node.hpp"
 
 class Edge {
-  shared_node_ptr src, dest;
+  shared_node src, dest;
   int weight;
 
 public:
-  Edge(const shared_node_ptr& src, const shared_node_ptr& dest, const int weight)
-      : src(src), dest(dest), weight(weight) {}
+  Edge(const shared_node& src, const shared_node& dest, const int weight) : src(src), dest(dest), weight(weight) {}
 
-  const shared_node_ptr& get_source() const { return src; }
-  const shared_node_ptr& get_destination() const { return dest; }
-  const int get_weight() const { return weight; }
+  const shared_node& get_source() const { return src; }
+  const shared_node& get_destination() const { return dest; }
+  int get_weight() const { return weight; }
 
-  void set_source(const shared_node_ptr& src) { this->src = src; }
-  void set_destination(const shared_node_ptr& dest) { this->dest = dest; }
+  void set_source(const shared_node& src) { this->src = src; }
+  void set_destination(const shared_node& dest) { this->dest = dest; }
   void set_weight(const int weight) { this->weight = weight; }
 
-  void print(std::ostream& out = std::cout) {
+  void print(std::ostream& out = std::cout) const {
     out << "(" << src->get_data() << ") -> (" << dest->get_data() << ") => weight: " << weight << std::endl;
   }
 };
 
-using shared_edge_ptr = std::shared_ptr<Edge>;
-shared_edge_ptr shared_edge_factory(const shared_node_ptr src, const shared_node_ptr dest, const int weight) {
+using shared_edge = std::shared_ptr<Edge>;
+shared_edge create_edge(const shared_node& src, const shared_node& dest, const int weight) {
   return std::make_shared<Edge>(src, dest, weight);
 }
 

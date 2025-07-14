@@ -17,10 +17,10 @@ class Node {
 public:
   Node(const int data) : data(data), distance(INT_MAX), start_visit(INT_MAX), end_visit(INT_MAX), color(Color::white) {}
 
-  const int get_data() const { return data; }
-  const int get_start_visit() const { return start_visit; }
-  const int get_end_visit() const { return end_visit; }
-  const int get_distance() const { return distance; }
+  int get_data() const { return data; }
+  int get_start_visit() const { return start_visit; }
+  int get_end_visit() const { return end_visit; }
+  int get_distance() const { return distance; }
   const std::weak_ptr<Node>& get_predecessor() const { return predecessor; }
   const std::vector<std::weak_ptr<Node>>& get_adj_list() const { return adj_list; }
   const Color get_color() const { return color; }
@@ -33,12 +33,13 @@ public:
   void set_predecessor(const std::shared_ptr<Node>& node) { this->predecessor = node; }
   void add_adjacent(const std::shared_ptr<Node>& node) { adj_list.push_back(node); }
 
-  void print(std::ostream& out = std::cout) {
+  void print(std::ostream& out = std::cout) const {
     out << "(" << data << ") => color: "
         << (color == Color::black  ? "black"
             : color == Color::gray ? "gray"
                                    : "white")
-        << " - start visit: " << start_visit << " - end visit: " << end_visit << " - predecessor: (";
+        << " - distance: " << distance << " - start visit: " << start_visit << " - end visit: " << end_visit
+        << " - predecessor: (";
     auto pred = predecessor.lock();
     if (pred)
       out << pred->data;
@@ -46,9 +47,17 @@ public:
       out << "NULL";
     out << ")" << std::endl;
   }
+
+  void reset() {
+    start_visit = INT_MAX;
+    end_visit = INT_MAX;
+    predecessor = std::weak_ptr<Node>();
+    distance = INT_MAX;
+    color = Color::white;
+  }
 };
 
-using shared_node_ptr = std::shared_ptr<Node>;
-shared_node_ptr shared_node_factory(const int data) { return std::make_shared<Node>(data); }
+using shared_node = std::shared_ptr<Node>;
+shared_node create_node(const int data) { return std::make_shared<Node>(data); }
 
 #endif

@@ -172,6 +172,8 @@ public:
     while (!pq.empty()) {
       const auto node = pq.top();
       pq.pop();
+
+      if (in_mst.find(node) != in_mst.end()) continue;
       in_mst.insert(node);
 
       for (auto& adj : node->get_adj_list()) {
